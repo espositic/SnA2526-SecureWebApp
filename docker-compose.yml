@@ -1,0 +1,45 @@
+services:
+  database:
+    image: mysql:8.0
+    container_name: db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  webserver:
+    image: tomcat:9-jdk11
+    container_name: tomcat
+    restart: unless-stopped
+    ports:
+      - "${TOMCAT_HTTP_PORT}:8080"
+      - "${TOMCAT_HTTPS_PORT}:8443"
+    volumes:
+      - ./target:/usr/local/tomcat/webapps
+      - ./certs:/usr/local/tomcat/certs
+      - ./config/server.xml:/usr/local/tomcat/conf/server.xml
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - app_network
+
+volumes:
+  mysql_data:
+
+networks:
+  app_network:
+    driver: bridge
