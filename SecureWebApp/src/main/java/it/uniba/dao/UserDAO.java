@@ -52,7 +52,6 @@ public class UserDAO {
                 if (rs.next()) {
                     User user = new User();
                     user.setId(rs.getInt("id"));
-                    // RIMOSSO il setUsername
                     user.setEmail(rs.getString("email"));
                     user.setPasswordHash(rs.getString("password_hash"));
                     return user;
