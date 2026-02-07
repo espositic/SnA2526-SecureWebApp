@@ -19,7 +19,6 @@ public class RegisterServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // RIMOSSO parametro username
         String email = request.getParameter("email");
         String password = request.getParameter("password");
         String confirmPassword = request.getParameter("confirmPassword");
@@ -48,8 +47,7 @@ public class RegisterServlet extends HttpServlet {
         }
 
         String passwordHash = PasswordUtil.hashPassword(password);
-        
-        // RIMOSSO username dal costruttore
+
         User newUser = new User(email, passwordHash);
 
         if (userDAO.registerUser(newUser)) {

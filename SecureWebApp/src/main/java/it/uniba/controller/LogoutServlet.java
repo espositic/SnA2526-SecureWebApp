@@ -27,6 +27,6 @@ public class LogoutServlet extends HttpServlet {
         response.setHeader("Pragma", "no-cache");
         response.setDateHeader("Expires", 0);
 
-        response.sendRedirect("login.jsp");
+        response.sendRedirect("login.jsp?logout=true");
     }
 }

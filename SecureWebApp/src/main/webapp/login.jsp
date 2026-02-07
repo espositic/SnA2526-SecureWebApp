@@ -14,6 +14,12 @@
         <div style="color: green;">Registrazione completata! Effettua il login.</div>
     </c:if>
 
+    <c:if test="${param.logout eq 'true'}">
+        <div>
+            Disconnessione effettuata con successo.
+        </div>
+    </c:if>
+
     <%-- Messaggio di Errore --%>
     <c:if test="${not empty error}">
         <div style="color: red;">
