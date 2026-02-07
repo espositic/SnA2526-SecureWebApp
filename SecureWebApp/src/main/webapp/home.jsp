@@ -9,6 +9,21 @@
 <p>Benvenuto, <b><c:out value="${sessionScope.user.email}"/></b>!</p>
 
 <hr>
+
+<h3>Carica un file di testo</h3>
+
+<% String msg = (String) request.getAttribute("message"); %>
+<% if (msg != null) { %>
+<div><%= msg %></div>
+<% } %>
+
+<form action="upload" method="post" enctype="multipart/form-data">
+    <label for="fileUpload">Seleziona un file .txt:</label>
+    <input type="file" id="fileUpload" name="file" accept=".txt" required>
+    <button type="submit">Carica File</button>
+</form>
+
+<hr>
 <%-- Tasto Logout --%>
 <a href="logout">
     <button>
