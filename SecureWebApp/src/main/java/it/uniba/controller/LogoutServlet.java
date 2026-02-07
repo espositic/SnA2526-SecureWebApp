@@ -17,9 +17,15 @@ public class LogoutServlet extends HttpServlet {
         HttpSession session = request.getSession(false);
         if (session != null) {
             session.invalidate();
+            System.out.println("LogoutServlet: Sessione server invalidata.");
         }
 
         CookieUtil.deleteCookie(request, response, "SECURE_SESSION_ID");
+        CookieUtil.deleteCookie(request, response, "JSESSIONID");
+
+        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        response.setHeader("Pragma", "no-cache");
+        response.setDateHeader("Expires", 0);
 
         response.sendRedirect("login.jsp");
     }

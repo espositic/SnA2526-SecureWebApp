@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServletResponse;
 public class CookieUtil {
 
     private static final boolean HTTP_ONLY = true;
-    private static final boolean SECURE = true; // Mettere a false se non usi HTTPS
+    private static final boolean SECURE = true;
 
     /**
      * Crea un cookie standard
@@ -26,17 +26,14 @@ public class CookieUtil {
      */
     public static void deleteCookie(HttpServletRequest request, HttpServletResponse response, String name) {
         String contextPath = request.getContextPath();
+        if (contextPath == null || contextPath.isEmpty()) contextPath = "/";
 
-        if (contextPath == null || contextPath.isEmpty()) {
-            contextPath = "/";
-        }
-
-        Cookie cookie = new Cookie(name, "");
+        javax.servlet.http.Cookie cookie = new javax.servlet.http.Cookie(name, "");
         cookie.setPath(contextPath);
         cookie.setMaxAge(0);
-        cookie.setHttpOnly(HTTP_ONLY);
-        cookie.setSecure(SECURE);
-
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        
         response.addCookie(cookie);
     }
 }
