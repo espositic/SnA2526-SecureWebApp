@@ -2,50 +2,51 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <html>
 <head>
-    <title>Login Sicuro</title>
+    <title>Accedi</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
 </head>
 <body>
-
-<div class="container">
-    <h2>Accesso Utente</h2>
-
-    <%-- Messaggio di successo (dopo registrazione) --%>
-    <c:if test="${param.registered eq 'true'}">
-        <div style="color: green;">Registrazione completata! Effettua il login.</div>
-    </c:if>
-
-    <c:if test="${param.logout eq 'true'}">
-        <div>
-            Disconnessione effettuata con successo.
+<div class="header">
+    <div class="header-inner">
+        <div class="brand">
+            <img src="img/logo.png" alt="Logo">
+            <span>Sicurezza nelle Applicazioni</span>
         </div>
-    </c:if>
-
-    <%-- Messaggio di Errore --%>
-    <c:if test="${not empty error}">
-        <div style="color: red;">
-            <c:out value="${error}"/>
-        </div>
-    </c:if>
-
-    <form action="login" method="post">
-        <div>
-            <label for="email">Email:</label><br>
-            <input type="email" id="email" name="email" required autocomplete="email">
-        </div>
-
-        <div>
-            <label for="password">Password:</label><br>
-            <input type="password" id="password" name="password" required autocomplete="current-password">
-        </div>
-
-        <br>
-        <button type="submit">Accedi</button>
-    </form>
-
-    <p>
-        Non hai un account? <a href="register.jsp">Registrati qui</a>
-    </p>
+    </div>
 </div>
 
+<main>
+    <div class="card card-center">
+        <h2>Accedi</h2>
+
+        <c:if test="${param.registered eq 'true'}">
+            <div class="alert alert-success">Registrazione completata! Effettua il login.</div>
+        </c:if>
+        <c:if test="${param.logout eq 'true'}">
+            <div class="alert alert-success">Logout effettuato.</div>
+        </c:if>
+        <c:if test="${not empty error}">
+            <div class="alert alert-error"><c:out value="${error}"/></div>
+        </c:if>
+
+        <form action="login" method="post">
+            <div class="form-row">
+                <input type="email" name="email" placeholder="Email" required>
+            </div>
+            <div class="form-row">
+                <input type="password" name="password" placeholder="Password" required>
+            </div>
+            <button type="submit">Entra</button>
+        </form>
+
+        <hr>
+        <a href="register.jsp"><button class="btn-secondary">Crea nuovo account</button></a>
+    </div>
+</main>
+
+<div class="footer">
+    CdL Magistrale in Sicurezza Informatica – UniBa<br>
+    Studente: <strong>Matteo Esposito</strong>
+</div>
 </body>
 </html>
