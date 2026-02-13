@@ -13,7 +13,7 @@
     <session-timeout>30</session-timeout>
 
     <cookie-config>
-      <name>SECURE_SESSION_ID</name>
+      <name>SYS_SESSION</name>
       <http-only>true</http-only>
       <secure>true</secure>
     </cookie-config>
