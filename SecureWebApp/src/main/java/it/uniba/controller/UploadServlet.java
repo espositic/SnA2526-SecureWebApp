@@ -2,6 +2,8 @@ package it.uniba.controller;
 
 import it.uniba.model.User;
 import it.uniba.util.DatabaseUtil;
+import it.uniba.service.AsyncFileArchiver;
+import org.apache.tika.Tika;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -49,6 +51,35 @@ public class UploadServlet extends HttpServlet {
             return;
         }
 
+        System.out.println("DEBUG: Sto per inizializzare Apache Tika..."); // CHECKPOINT 1
+
+        String detectedType = "unknown";
+        try {
+            // Usiamo Tika per rilevare il VERO tipo del file
+            Tika tika = new Tika();
+
+            try (InputStream checkStream = filePart.getInputStream()) {
+                detectedType = tika.detect(checkStream);
+            }
+            System.out.println("DEBUG: Tika ha rilevato: " + detectedType); // CHECKPOINT 2
+
+        } catch (Throwable t) {
+            // CATTURA TUTTO: Anche errori di link o librerie mancanti
+            System.err.println("!!! ERRORE CRITICO TIKA !!!");
+            t.printStackTrace(); // Questo DEVE apparire nei log
+
+            request.setAttribute("message", "ERRORE INTERNO: Impossibile analizzare il file. Contattare l'admin.");
+            request.getRequestDispatcher("home.jsp").forward(request, response);
+            return;
+        }
+        // Validazione rigorosa
+        if (!"text/plain".equals(detectedType)) {
+            System.err.println("SECURITY: Tentativo di upload file non valido. Rilevato: " + detectedType);
+            request.setAttribute("message", "ERRORE: Formato file non supportato (Rilevato contenuto non testuale: " + detectedType + ").");
+            request.getRequestDispatcher("home.jsp").forward(request, response);
+            return;
+        }
+
         String mimeType = filePart.getContentType();
         if (mimeType == null || !mimeType.equals("text/plain")) {
             request.setAttribute("message", "ERRORE: Il tipo di file non è valido (MIME type errato).");
@@ -76,6 +107,12 @@ public class UploadServlet extends HttpServlet {
                 stmt.setString(2, fileName);
                 stmt.setString(3, fileContent);
                 stmt.executeUpdate();
+
+                AsyncFileArchiver.getInstance().archiveFileAsync(
+                        fileName,
+                        fileContent,
+                        user.getEmail()
+                );
             }
             request.setAttribute("message", "Successo! File caricato e salvato nel database.");
         } catch (SQLException e) {
