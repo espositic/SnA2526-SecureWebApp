@@ -1,125 +1,147 @@
 package it.uniba.controller;
 
+import it.uniba.dao.UploadDAO;
 import it.uniba.model.User;
-import it.uniba.util.DatabaseUtil;
-import it.uniba.service.AsyncFileArchiver;
+import it.uniba.util.FileManagerUtil;
 import org.apache.tika.Tika;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import javax.servlet.http.Part;
+import javax.servlet.http.*;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.stream.Collectors;
 
+/**
+ * Servlet per la gestione sicura del caricamento dei file.
+ * Implementa controlli  su estensione e contenuto
+ * prima di salvare il file su disco e registrare l'evento nel database.
+ *
+ * <p>Configurazione Multipart:
+ * <ul>
+ * <li>Soglia scrittura su disco: 1 MB</li>
+ * <li>Dimensione massima file: 5 MB</li>
+ * <li>Dimensione massima richiesta: 10 MB</li>
+ * </ul>
+ * </p>
+ *
+ * @author Matteo Esposito
+ * @version 1.0
+ */
 @WebServlet("/upload")
 @MultipartConfig(
         fileSizeThreshold = 1024 * 1024,
-        maxFileSize = 1024 * 1024 * 5,
-        maxRequestSize = 1024 * 1024 * 10
+        maxFileSize = 5 * 1024 * 1024,
+        maxRequestSize = 10 * 1024 * 1024
 )
 public class UploadServlet extends HttpServlet {
 
+    private final UploadDAO uploadDAO = new UploadDAO();
+
+    /**
+     * Gestisce la richiesta POST per l'upload di un file.
+     * Esegue la validazione, la conversione e il salvataggio.
+     *
+     * @param request  La richiesta HTTP contenente il file multipart.
+     * @param response La risposta HTTP per il redirect.
+     * @throws ServletException In caso di errori servlet.
+     * @throws IOException      In caso di errori I/O.
+     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
+        // ========================================================================
+        // RECUPERO UTENTE
+        // ========================================================================
         HttpSession session = request.getSession(false);
+
+        // Recupero dell'oggetto User dalla sessione.
         User user = (session != null) ? (User) session.getAttribute("user") : null;
 
         if (user == null) {
-            response.sendRedirect("login.jsp");
+            // Sessione scaduta o tentativo di accesso diretto non autorizzato.
+            response.sendRedirect("login.jsp?error=session_expired");
             return;
         }
 
-        Part filePart = request.getPart("file");
-        String fileName = filePart.getSubmittedFileName();
-
-        if (fileName == null || !fileName.toLowerCase().endsWith(".txt")) {
-            request.setAttribute("message", "ERRORE: Sono ammessi solo file .txt!");
-            request.getRequestDispatcher("home.jsp").forward(request, response);
-            return;
-        }
-
-        System.out.println("DEBUG: Sto per inizializzare Apache Tika..."); // CHECKPOINT 1
-
-        String detectedType = "unknown";
         try {
-            // Usiamo Tika per rilevare il VERO tipo del file
-            Tika tika = new Tika();
+            // ====================================================================
+            // RECUPERO FILE E VALIDAZIONE
+            // ====================================================================
+            Part filePart = request.getPart("file");
 
-            try (InputStream checkStream = filePart.getInputStream()) {
-                detectedType = tika.detect(checkStream);
+            if (filePart != null && filePart.getSize() > 0) {
+
+                String submittedName = filePart.getSubmittedFileName();
+
+                // Si accettano solo file che terminano esplicitamente con .txt
+                if (submittedName == null || !submittedName.toLowerCase().endsWith(".txt")) {
+                    throw new SecurityException("Estensione non valida. Solo .txt ammessi.");
+                }
+
+                // Tika analizza i magic numbers (byte iniziali) del file.
+                try (InputStream is = filePart.getInputStream()) {
+                    Tika tika = new Tika();
+                    String mimeType = tika.detect(is);
+                    if (!"text/plain".equals(mimeType)) {
+                        throw new SecurityException("MIME Type non valido: " + mimeType);
+                    }
+                }
+
+                // ====================================================================
+                // CONVERSIONE STREAM -> STRINGA
+                // ====================================================================
+                // FileManagerUtil richiede il contenuto come stringa.
+                // Leggiamo lo stream in memoria con charset UTF-8 per evitare corruzione caratteri.
+                String fileContent;
+                try (InputStream inputStream = filePart.getInputStream();
+                     BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+                    fileContent = reader.lines().collect(Collectors.joining("\n"));
+                }
+
+                // Controllo file vuoto post-lettura
+                if (fileContent.trim().isEmpty()) {
+                    throw new SecurityException("Il file è vuoto.");
+                }
+
+                // ====================================================================
+                // SALVATAGGIO SU FILE SYSTEM
+                // ====================================================================
+                // Determina il percorso assoluto della cartella 'uploads' nel server/container.
+                String uploadDir = getServletContext().getRealPath("") + File.separator + "uploads";
+
+                // Invoca il metodo thread-safe dell'utility per salvare fisicamente il file.
+                // Ritorna il nome del file effettivamente salvato (potrebbe essere rinominato se duplicato).
+                String savedFileName = FileManagerUtil.saveFileSafe(uploadDir, submittedName, fileContent);
+
+                // ====================================================================
+                // SALVATAGGIO METADATI SU DB
+                // ====================================================================
+                // Collega il file salvato all'ID depotrebbe essere rinominato se dll'utente corrente.
+                boolean dbSuccess = uploadDAO.saveUpload(user.getId(), savedFileName);
+
+                if (dbSuccess) {
+                    // Successo: Notifica all'utente.
+                    response.sendRedirect("home.jsp?msg=Post pubblicato con successo!");
+                } else {
+                    // Fallimento DB: (Nota: idealmente qui si dovrebbe cancellare il file orfano)
+                    response.sendRedirect("home.jsp?msg=Errore nel salvataggio DB");
+                }
+            } else {
+                response.sendRedirect("home.jsp?msg=Errore: File vuoto o mancante.");
             }
-            System.out.println("DEBUG: Tika ha rilevato: " + detectedType); // CHECKPOINT 2
-
-        } catch (Throwable t) {
-            // CATTURA TUTTO: Anche errori di link o librerie mancanti
-            System.err.println("!!! ERRORE CRITICO TIKA !!!");
-            t.printStackTrace(); // Questo DEVE apparire nei log
-
-            request.setAttribute("message", "ERRORE INTERNO: Impossibile analizzare il file. Contattare l'admin.");
-            request.getRequestDispatcher("home.jsp").forward(request, response);
-            return;
-        }
-        // Validazione rigorosa
-        if (!"text/plain".equals(detectedType)) {
-            System.err.println("SECURITY: Tentativo di upload file non valido. Rilevato: " + detectedType);
-            request.setAttribute("message", "ERRORE: Formato file non supportato (Rilevato contenuto non testuale: " + detectedType + ").");
-            request.getRequestDispatcher("home.jsp").forward(request, response);
-            return;
-        }
-
-        String mimeType = filePart.getContentType();
-        if (mimeType == null || !mimeType.equals("text/plain")) {
-            request.setAttribute("message", "ERRORE: Il tipo di file non è valido (MIME type errato).");
-            request.getRequestDispatcher("home.jsp").forward(request, response);
-            return;
-        }
-
-        String fileContent;
-        try (InputStream inputStream = filePart.getInputStream();
-             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
-
-            fileContent = reader.lines().collect(Collectors.joining("\n"));
-        }
-
-        if (fileContent.trim().isEmpty()) {
-            request.setAttribute("message", "ERRORE: Il file è vuoto.");
-            request.getRequestDispatcher("home.jsp").forward(request, response);
-            return;
-        }
-
-        try (Connection conn = DatabaseUtil.getConnection()) {
-            String sql = "INSERT INTO uploads (user_id, filename, content) VALUES (?, ?, ?)";
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setInt(1, user.getId());
-                stmt.setString(2, fileName);
-                stmt.setString(3, fileContent);
-                stmt.executeUpdate();
-
-                AsyncFileArchiver.getInstance().archiveFileAsync(
-                        fileName,
-                        fileContent,
-                        user.getEmail()
-                );
-            }
-            request.setAttribute("message", "Successo! File caricato e salvato nel database.");
-        } catch (SQLException e) {
+        } catch (SecurityException se) {
+            // Gestione errori di sicurezza
+            response.sendRedirect("home.jsp?msg=Errore Sicurezza: " + se.getMessage());
+        } catch (Exception e) {
+            // Gestione errori generici
             e.printStackTrace();
-            request.setAttribute("message", "Errore Database: " + e.getMessage());
+            response.sendRedirect("home.jsp?msg=Errore Tecnico: " + e.getMessage());
         }
-
-        request.getRequestDispatcher("home.jsp").forward(request, response);
     }
 }
