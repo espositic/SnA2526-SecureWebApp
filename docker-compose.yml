@@ -28,6 +28,13 @@ services:
     ports:
       - "${TOMCAT_HTTP_PORT}:8080"
       - "${TOMCAT_HTTPS_PORT}:8443"
+    environment:
+      - DB_HOST=database
+      - DB_PORT=3306
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - SECRET_KEY=${SECRET_KEY}
     volumes:
       - ./SecureWebApp/target:/usr/local/tomcat/webapps
       - ./certs:/usr/local/tomcat/certs
