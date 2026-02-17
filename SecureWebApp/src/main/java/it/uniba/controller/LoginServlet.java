@@ -81,7 +81,7 @@ public class LoginServlet extends HttpServlet {
             }
 
             // 6. Redirect alla pagina del feed (o home)
-            response.sendRedirect("home");
+            response.sendRedirect("home.jsp");
 
         } else {
             // Login Fallito: Messaggio di errore e ritorno alla pagina di login

@@ -10,7 +10,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <html>
 <head>
-    <title>Accedi - Secure App</title>
+    <title>Accedi</title>
     <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/style.css">
 </head>
 <body>
@@ -39,9 +39,9 @@
         </c:if>
 
         <%-- Messaggio di errore generico (es. credenziali errate) --%>
-        <c:if test="${not empty error}">
+        <c:if test="${not empty errorMessage}">
             <div class="alert alert-error">
-                <c:out value="${error}"/>
+                <c:out value="${errorMessage}"/>
             </div>
         </c:if>
 
@@ -53,6 +53,14 @@
             <div class="form-row">
                 <input type="password" name="password" placeholder="Password" required>
             </div>
+
+            <%-- AGGIUNTA CHECKBOX RICORDAMI --%>
+            <div class="form-row" style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                <input type="checkbox" name="rememberMe" id="rememberMe" style="width: auto;">
+                <label for="rememberMe" style="margin-bottom: 0; cursor: pointer; font-weight: normal; color: #1d1f23;">Ricordami</label>
+            </div>
+            <%-- FINE AGGIUNTA --%>
+
             <button type="submit">Entra</button>
         </form>
 

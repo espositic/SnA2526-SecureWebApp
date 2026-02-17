@@ -103,7 +103,7 @@
         <c:otherwise>
             <div class="card" style="text-align:center;">
                 <p>La bacheca è attualmente vuota.</p>
-                <a href="home.jsp" class="btn">Carica il primo pensiero</a>
+                <a href="home.jsp" class="btn">Carica il primo post!</a>
             </div>
         </c:otherwise>
     </c:choose>

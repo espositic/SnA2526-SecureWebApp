@@ -9,7 +9,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <html>
 <head>
-    <title>Registrati - Secure App</title>
+    <title>Registrati</title>
     <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/style.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
