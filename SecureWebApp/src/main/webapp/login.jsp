@@ -1,10 +1,10 @@
 <%--
-  Pagina: login.jsp
-  Descrizione: Pagina di autenticazione utente.
+  PAGINA: login.jsp
+  DESCRIZIONE: Interfaccia di autenticazione utente.
 
-  Note di sicurezza:
-  - XSS: Protezione tramite JSTL c:out per la stampa dell'errore.
-  - Feedback: Gestione messaggi di successo/logout via parametri URL.
+  NOTE DI SICUREZZA & IMPLEMENTATIVE:
+  1. Utilizzo di JSTL <c:out> per l'output di messaggi dinamici.
+  2. Gestione sicura dei messaggi di stato tramite parametri.
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
@@ -28,24 +28,50 @@
     <div class="card card-center">
         <h2>Accedi</h2>
 
-        <%-- Messaggio dopo registrazione riuscita --%>
+        <%--
+             FEEDBACK UTENTE: REGISTRAZIONE
+             Messaggio informativo statico, attivato da parametro URL sicuro.
+        --%>
         <c:if test="${param.registered eq 'true'}">
             <div class="alert alert-success">Registrazione completata! Effettua il login.</div>
         </c:if>
 
-        <%-- Messaggio dopo logout --%>
+        <%--
+             FEEDBACK UTENTE: LOGOUT
+             Conferma visiva dell'avvenuta invalidazione della sessione.
+        --%>
         <c:if test="${param.logout eq 'true'}">
             <div class="alert alert-success">Logout effettuato con successo.</div>
         </c:if>
 
-        <%-- Messaggio di errore generico (es. credenziali errate) --%>
+        <%--
+             GESTIONE ERRORI (Login Failed)
+             Visualizza errori generati dal backend.
+             SECURITY: <c:out> neutralizza potenziali payload XSS se il messaggio deriva da input utente.
+        --%>
         <c:if test="${not empty errorMessage}">
             <div class="alert alert-error">
                 <c:out value="${errorMessage}"/>
             </div>
         </c:if>
 
-        <%-- Form di Login: la validazione regex è delegata al backend --%>
+        <%--
+           MESSAGGI GENERICI
+           Visualizza messaggi passati via parametro 'msg'.
+           Anche qui l'escaping è fondamentale per prevenire Reflected XSS.
+        --%>
+        <c:if test="${not empty param.msg}">
+            <div class="alert alert-success">
+                <c:out value="${param.msg}"/>
+            </div>
+        </c:if>
+
+        <%--
+            FORM DI LOGIN SICURO
+            - method="post": Obbligatorio per non esporre password in URL/Query String.
+            - autocomplete="off": Mitigazione base per evitare caching credenziali su PC condivisi.
+            - required: Validazione client-side per UX.
+        --%>
         <form action="${pageContext.request.contextPath}/login" method="post" autocomplete="off">
             <div class="form-row">
                 <input type="email" name="email" placeholder="Email" required>
@@ -54,18 +80,11 @@
                 <input type="password" name="password" placeholder="Password" required>
             </div>
 
-            <%-- AGGIUNTA CHECKBOX RICORDAMI --%>
-            <div class="form-row" style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                <input type="checkbox" name="rememberMe" id="rememberMe" style="width: auto;">
-                <label for="rememberMe" style="margin-bottom: 0; cursor: pointer; font-weight: normal; color: #1d1f23;">Ricordami</label>
-            </div>
-            <%-- FINE AGGIUNTA --%>
-
             <button type="submit">Entra</button>
         </form>
 
         <hr>
-        <%-- Link alla registrazione --%>
+        <%-- NAVIGAZIONE: Link alla pagina di registrazione --%>
         <div style="text-align: center;">
             <p>Non hai un account?</p>
             <a href="${pageContext.request.contextPath}/register.jsp">

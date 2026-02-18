@@ -1,6 +1,5 @@
 <%--
   Pagina: home.jsp
-  Descrizione: Dashboard utente per l'upload. Linka alla pagina Feed separata.
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
@@ -13,7 +12,7 @@
 
 <html>
 <head>
-    <title>Home - Secure App</title>
+    <title>Home</title>
     <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/style.css">
 </head>
 <body>
@@ -63,7 +62,7 @@
             <p style="margin:0; font-size: 14px; color: #65676b;">Visualizza i file caricati dalla community.</p>
         </div>
         <div style="width: auto;">
-            <%-- Link alla Servlet /feed (che poi mostra feed.jsp) --%>
+            <%-- Link alla Servlet /feed --%>
             <a href="${pageContext.request.contextPath}/feed" style="text-decoration: none;">
                 <button type="button" style="width: auto; padding: 10px 20px; background: #42b72a;">Vai alla Bacheca &rarr;</button>
             </a>

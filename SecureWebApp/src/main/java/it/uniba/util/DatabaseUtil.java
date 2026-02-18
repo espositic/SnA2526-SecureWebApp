@@ -8,12 +8,12 @@ import java.sql.SQLException;
  * Classe di utilità per la gestione della connessione al Database.
  *
  * @author Matteo Esposito
- * @version 2.0
+ * @version 1.0
  */
 public class DatabaseUtil {
 
     // ==================================================================================
-    // CONFIGURAZIONE AMBIENTALE OBBLIGATORIA
+    // CONFIGURAZIONE VARIABILI D'AMBIENTE
     // L'applicazione fallirà l'avvio se queste variabili non sono definite nell'ambiente.
     // ==================================================================================
 
@@ -77,7 +77,7 @@ public class DatabaseUtil {
     }
 
     /**
-     * Ottiene una connessione al database utilizzando le variabili d'ambiente.
+     * Ottiene una connessione al database.
      *
      * @return Una connessione attiva {@link Connection}.
      * @throws SQLException Se la connessione fallisce.
@@ -87,9 +87,9 @@ public class DatabaseUtil {
     }
 
     /**
-     * Recupera una variabile d'ambiente obbligatoria.
+     * Recupera una variabile d'ambiente.
      *
-     * @param key Il nome della variabile d'ambiente (es. "DB_USER").
+     * @param key Il nome della variabile d'ambiente.
      * @return Il valore della variabile.
      * @throws IllegalStateException Se la variabile d'ambiente manca.
      */

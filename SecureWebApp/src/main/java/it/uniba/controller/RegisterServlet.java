@@ -25,7 +25,6 @@ public class RegisterServlet extends HttpServlet {
 
     /**
      * DAO per l'accesso ai dati utente.
-     * Viene istanziato una volta per servlet (stateless).
      */
     private final UserDAO userDAO = new UserDAO();
 

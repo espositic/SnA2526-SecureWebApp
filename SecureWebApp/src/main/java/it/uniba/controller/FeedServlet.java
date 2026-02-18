@@ -9,7 +9,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
@@ -36,20 +35,11 @@ public class FeedServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-        // ========================================================================
-        // 1. CONTROLLO SESSIONE (Security)
-        // ========================================================================
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("user") == null) {
-            response.sendRedirect("login.jsp");
-            return;
-        }
 
-        // Lista che conterrà gli oggetti Upload arricchiti con il contenuto del file
         List<Upload> posts = new ArrayList<>();
 
         // ========================================================================
-        // 2. QUERY SQL (JOIN tra Uploads e Users)
+        // QUERY SQL
         // ========================================================================
         // NOTA: Recuperiamo l'email dell'autore direttamente per popolare la vista.
         String sql = "SELECT u.email, up.filename, up.uploaded_at " +
@@ -66,36 +56,28 @@ public class FeedServlet extends HttpServlet {
 
             while (rs.next()) {
                 Upload p = new Upload();
-
                 // Mapping metadati dal database
                 p.setFilename(rs.getString("filename"));
                 p.setUploadedAt(rs.getTimestamp("uploaded_at"));
-
-                // Popoliamo il campo autore (email) recuperato dalla JOIN
+                // Popoliamo il campo email recuperato dalla JOIN
                 p.setAuthor(rs.getString("email"));
 
                 // ========================================================================
-                // 3. LETTURA DAL DISCO (File System)
+                // LETTURA DAL DISCO
                 // ========================================================================
                 try {
-                    // Utilizza l'utility per leggere in sicurezza il file .txt
                     String realContent = FileManagerUtil.readFile(uploadDir, p.getFilename());
                     p.setContent(realContent);
                 } catch (IOException e) {
-                    // Fail-safe: se il file è rimosso o illeggibile, non bloccare il feed
+                    // Se il file è rimosso o illeggibile, non bloccare il feed
                     p.setContent("Attenzione: Impossibile recuperare il contenuto di questo file.");
-                    System.err.println("Errore I/O per il file: " + p.getFilename());
                 }
-
                 posts.add(p);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        // ========================================================================
-        // 4. INVIO ALLA VISTA
-        // ========================================================================
         request.setAttribute("posts", posts);
         request.getRequestDispatcher("feed.jsp").forward(request, response);
     }

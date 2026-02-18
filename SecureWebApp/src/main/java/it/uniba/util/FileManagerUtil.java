@@ -34,10 +34,10 @@ public class FileManagerUtil {
      * univoco incrementale (es. file.txt -> file_1.txt).
      *
      * @param directoryPath Il percorso della cartella di destinazione.
-     * @param originalName Il nome originale del file (es. "nota.txt").
+     * @param originalName Il nome originale del file.
      * @param content Il contenuto testuale da scrivere nel file.
-     * @return Il nome definitivo del file salvato (utile per salvarlo nel DB).
-     * @throws IOException Se si verificano errori di I/O (es. permessi negati).
+     * @return Il nome definitivo del file salvato.
+     * @throws IOException Se si verificano errori di I/O.
      */
     public static String saveFileSafe(String directoryPath, String originalName, String content) throws IOException {
 
@@ -49,14 +49,13 @@ public class FileManagerUtil {
             }
         }
 
-        // Controllo di sicurezza base per evitare Path Traversal (es. "../filename")
+        // Controllo di sicurezza base per evitare Path Traversal
         if (originalName.contains("..") || originalName.contains("/") || originalName.contains("\\")) {
             throw new IllegalArgumentException("Il nome del file contiene caratteri non validi.");
         }
 
         /*
-         * INIZIO SEZIONE CRITICA (Blocco Synchronized)
-         * Risolve la Race Condition di tipo TOCTOU (Time Of Check to Time Of Use).
+         * Blocco Synchronized per risolvere la Race Condition di tipo TOCTOU.
          */
         synchronized (LOCK) {
             String finalName = originalName;
@@ -96,19 +95,18 @@ public class FileManagerUtil {
     }
 
     /**
-     * Legge il contenuto di un file di testo.
+     * Legge il contenuto testuale di un file.
      *
-     * @param directoryPath Il percorso della directory.
-     * @param filename Il nome del file da leggere.
-     * @return Una stringa contenente tutto il testo del file.
-     * @throws IOException Se il file non esiste o non è leggibile.
+     * @param directoryPath La cartella dove sono confinati i file.
+     * @param filename Il nome del file richiesto.
+     * @return Il contenuto del file come Stringa UTF-8.
+     * @throws IOException Se si verificano errori di I/O o violazioni di sicurezza.
      */
     public static String readFile(String directoryPath, String filename) throws IOException {
         // Controllo Path Traversal anche in lettura
         File f = new File(directoryPath, filename);
 
-        // Verifica di sicurezza: controlla che il file sia davvero dentro la directoryPath
-        // e che l'utente non stia provando a uscire con ".."
+        // Controlla che il file sia davvero dentro la directoryPath
         if (!f.getCanonicalPath().startsWith(new File(directoryPath).getCanonicalPath())) {
             throw new SecurityException("Tentativo di accesso non autorizzato al file system.");
         }

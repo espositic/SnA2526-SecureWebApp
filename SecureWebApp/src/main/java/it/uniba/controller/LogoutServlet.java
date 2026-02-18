@@ -1,7 +1,5 @@
 package it.uniba.controller;
 
-import it.uniba.util.CookieUtil;
-
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -9,6 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import javax.servlet.http.Cookie;
 
 /**
  * Servlet per la gestione del Logout.
@@ -44,11 +43,17 @@ public class LogoutServlet extends HttpServlet {
         // PULIZIA COOKIE CLIENT
         // ========================================================================
 
-        // Cancelliamo il cookie "Remember Me".
-        CookieUtil.deleteCookie(response, CookieUtil.COOKIE_NAME);
+        // Cancellazione sul path dell'app (es. /SecureWebApp)
+        Cookie cookieApp = new Cookie("JSESSIONID", "");
+        cookieApp.setPath(request.getContextPath());
+        cookieApp.setMaxAge(0);
+        response.addCookie(cookieApp);
 
-        // Cancelliamo anche il cookie di sessione standard del Container (Tomcat).
-        CookieUtil.deleteCookie(response, "JSESSIONID");
+        // Cancellazione sulla root "/" (nel caso fosse stato settato lì)
+        Cookie cookieRoot = new Cookie("JSESSIONID", "");
+        cookieRoot.setPath("/");
+        cookieRoot.setMaxAge(0);
+        response.addCookie(cookieRoot);
 
         // ========================================================================
         // REDIRECT

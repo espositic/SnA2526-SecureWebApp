@@ -10,7 +10,7 @@ import java.sql.SQLException;
 /**
  * Data Access Object (DAO) per la gestione dell'entità Utente.
  * Fornisce i metodi per interagire con la tabella 'users' del database,
- * gestendo le operazioni di lettura (Login) e scrittura (Registrazione).
+ * gestendo le operazioni di lettura e scrittura.
  *
  * @author Matteo Esposito
  * @version 1.0

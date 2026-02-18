@@ -12,7 +12,7 @@ import org.mindrot.jbcrypt.BCrypt;
 public class PasswordUtil {
 
     /**
-     * Il fattore di lavoro (log rounds) per la generazione del salt.
+     * Il fattore di lavoro per la generazione del salt.
      */
     private static final int WORK_FACTOR = 12;
 
@@ -28,7 +28,7 @@ public class PasswordUtil {
      * Include automaticamente un "salt" casuale all'interno dell'hash restituito.
      *
      * @param plainTextPassword La password in chiaro inserita dall'utente.
-     * @return Una stringa contenente l'hash BCrypt (lunghezza fissa di 60 caratteri),
+     * @return Una stringa contenente l'hash BCrypt,
      * oppure {@code null} se l'input è nullo o vuoto.
      */
     public static String hashPassword(String plainTextPassword) {

@@ -1,9 +1,10 @@
 <%--
-  Pagina: register.jsp
-  Descrizione: Interfaccia utente per la creazione di un nuovo account.
+  PAGINA: register.jsp
+  DESCRIZIONE: Interfaccia per la creazione di nuovi account utente.
 
-  Note:
-  - Sicurezza: Repopulation sicura con <c:out> per evitare Reflected XSS.
+  NOTE DI SICUREZZA & IMPLEMENTATIVE:
+  1. Utilizzo di JSTL <c:out>.
+  2. L'interfaccia comunica i requisiti, ma la validazione forte avviene lato server.
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
@@ -15,7 +16,7 @@
 </head>
 <body>
 
-<%-- HEADER --%>
+<%-- HEADER DI NAVIGAZIONE --%>
 <div class="header">
     <div class="header-inner">
         <div class="brand">
@@ -33,17 +34,29 @@
         <h2>Crea Account</h2>
         <hr>
 
-        <%-- BLOCCO ERRORI --%>
+        <%--
+             GESTIONE ERRORI
+             Visualizza errori restituiti dalla RegisterServlet.
+             SECURITY: L'uso di <c:out> neutralizza eventuali tentativi di iniezione tramite messaggi di errore manipolati.
+        --%>
         <c:if test="${not empty error}">
             <div class="alert alert-error">
                 <c:out value="${error}"/>
             </div>
         </c:if>
 
-        <%-- FORM DI REGISTRAZIONE --%>
+        <%--
+             FORM DI REGISTRAZIONE
+             - autocomplete="off": Disabilita i suggerimenti del browser per dati sensibili.
+             - action: Punta alla Servlet di registrazione protetta.
+        --%>
         <form action="${pageContext.request.contextPath}/register" method="post" autocomplete="off">
 
             <div class="form-row">
+                <%--
+                   Se la registrazione fallisce, manteniamo l'email inserita per migliorare la UX.
+                   Usiamo value="<c:out .../>" per prevenire REFLECTED XSS.
+                --%>
                 <input type="email"
                        name="email"
                        placeholder="Email"
@@ -57,6 +70,7 @@
                        placeholder="Nuova Password"
                        required>
 
+                <%-- Informazioni sulla complessità --%>
                 <div class="info-text">
                     Richiesto: Min 8 caratteri, 1 Maiuscola, 1 Numero, 1 Speciale.
                 </div>

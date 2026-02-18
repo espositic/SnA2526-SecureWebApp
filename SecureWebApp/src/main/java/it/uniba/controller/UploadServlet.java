@@ -59,15 +59,7 @@ public class UploadServlet extends HttpServlet {
         // RECUPERO UTENTE
         // ========================================================================
         HttpSession session = request.getSession(false);
-
-        // Recupero dell'oggetto User dalla sessione.
-        User user = (session != null) ? (User) session.getAttribute("user") : null;
-
-        if (user == null) {
-            // Sessione scaduta o tentativo di accesso diretto non autorizzato.
-            response.sendRedirect("login.jsp?error=session_expired");
-            return;
-        }
+        User user = (User) session.getAttribute("user");
 
         try {
             // ====================================================================
@@ -76,7 +68,6 @@ public class UploadServlet extends HttpServlet {
             Part filePart = request.getPart("file");
 
             if (filePart != null && filePart.getSize() > 0) {
-
                 String submittedName = filePart.getSubmittedFileName();
 
                 // Si accettano solo file che terminano esplicitamente con .txt
@@ -84,7 +75,7 @@ public class UploadServlet extends HttpServlet {
                     throw new SecurityException("Estensione non valida. Solo .txt ammessi.");
                 }
 
-                // Tika analizza i magic numbers (byte iniziali) del file.
+                // Tika analizza i magic numbers del file.
                 try (InputStream is = filePart.getInputStream()) {
                     Tika tika = new Tika();
                     String mimeType = tika.detect(is);
@@ -104,7 +95,6 @@ public class UploadServlet extends HttpServlet {
                     fileContent = reader.lines().collect(Collectors.joining("\n"));
                 }
 
-                // Controllo file vuoto post-lettura
                 if (fileContent.trim().isEmpty()) {
                     throw new SecurityException("Il file è vuoto.");
                 }
@@ -114,32 +104,26 @@ public class UploadServlet extends HttpServlet {
                 // ====================================================================
                 // Determina il percorso assoluto della cartella 'uploads' nel server/container.
                 String uploadDir = getServletContext().getRealPath("") + File.separator + "uploads";
-
                 // Invoca il metodo thread-safe dell'utility per salvare fisicamente il file.
-                // Ritorna il nome del file effettivamente salvato (potrebbe essere rinominato se duplicato).
+                // Ritorna il nome del file effettivamente salvato.
                 String savedFileName = FileManagerUtil.saveFileSafe(uploadDir, submittedName, fileContent);
 
                 // ====================================================================
                 // SALVATAGGIO METADATI SU DB
                 // ====================================================================
-                // Collega il file salvato all'ID depotrebbe essere rinominato se dll'utente corrente.
                 boolean dbSuccess = uploadDAO.saveUpload(user.getId(), savedFileName);
 
                 if (dbSuccess) {
-                    // Successo: Notifica all'utente.
                     response.sendRedirect("home.jsp?msg=Post pubblicato con successo!");
                 } else {
-                    // Fallimento DB: (Nota: idealmente qui si dovrebbe cancellare il file orfano)
                     response.sendRedirect("home.jsp?msg=Errore nel salvataggio DB");
                 }
             } else {
                 response.sendRedirect("home.jsp?msg=Errore: File vuoto o mancante.");
             }
         } catch (SecurityException se) {
-            // Gestione errori di sicurezza
             response.sendRedirect("home.jsp?msg=Errore Sicurezza: " + se.getMessage());
         } catch (Exception e) {
-            // Gestione errori generici
             e.printStackTrace();
             response.sendRedirect("home.jsp?msg=Errore Tecnico: " + e.getMessage());
         }

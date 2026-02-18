@@ -113,7 +113,7 @@ public class User implements Serializable {
      *
      * <p><strong>SICUREZZA:</strong> Questo metodo è stato sovrascritto intenzionalmente
      * per NON includere il campo {@code passwordHash}, evitando che credenziali
-     * (anche se hashate) finiscano nei log in chiaro.</p>
+     * finiscano nei log.</p>
      *
      * @return Una stringa contenente i dati pubblici dell'utente.
      */
