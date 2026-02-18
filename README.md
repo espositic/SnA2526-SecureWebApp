@@ -46,16 +46,6 @@ DB_PASSWORD=CambiaQuestaPasswordUser123!
 TOMCAT_HTTP_PORT=8080
 TOMCAT_HTTPS_PORT=8443
 
-# ==========================================
-# SICUREZZA APPLICAZIONE (HMAC & COOKIE)
-# ==========================================
-# Chiave segreta per la firma dei cookie e token.
-# Deve essere una stringa lunga e casuale (minimo 32 caratteri).
-SECRET_KEY="INSERISCI_QUI_LA_TUA_CHIAVE_SEGRETA_RANDOM"
-
-# Imposta a true se si utilizza HTTPS
-COOKIE_SECURE=false
-
 ```
 
 ---
@@ -68,8 +58,8 @@ Prima di avviare i container, è necessario compilare il codice Java per creare 
 # 1. Entra nella cartella del codice sorgente
 cd SecureWebApp
 
-# 2. Pulisci e compila il progetto (saltando i test per velocità)
-mvn clean package -DskipTests
+# 2. Pulisci e compila il progetto
+sudo mvn clean package -DskipTests
 
 # 3. Torna alla cartella principale
 cd ..
